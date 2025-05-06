@@ -1,0 +1,17 @@
+.custom-sidebar-menu .ant-menu-item-selected {
+    background-color: #1890ff !important;
+    color: #fff !important;
+}
+
+.custom-sidebar-menu .ant-menu-item-selected .anticon {
+    color: #fff !important;
+}
+
+.custom-sidebar-menu .ant-menu-item:hover {
+    background-color: #40a9ff !important;
+    color: #fff !important;
+}
+
+.custom-sidebar-menu .ant-menu-item:hover .anticon {
+    color: #fff !important;
+}

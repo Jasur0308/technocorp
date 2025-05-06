@@ -1,0 +1,226 @@
+import { BsCheckLg } from "react-icons/bs";
+import { GoX } from "react-icons/go";
+import { BiPlusMedical } from "react-icons/bi";
+import { VscTrash } from "react-icons/vsc";
+import { FaEdit } from "react-icons/fa";
+import { ImEye } from "react-icons/im";
+import { Table, Button, Space, Modal, Form, Input, Divider, Switch } from "antd";
+import React, { useState } from "react";
+import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
+
+const initialData = [
+    {
+        key: "1",
+        name: "Asosli",
+        visible: true,
+    },
+    {
+        key: "2",
+        name: "Asossiz",
+        visible: true,
+    },
+    {
+        key: "3",
+        name: "Ma'lumot uchun",
+        visible: true,
+    },
+    {
+        key: "4",
+        name: "Anonim",
+        visible: true,
+    },
+    {
+        key: "5",
+        name: "Ko'rib chiqilmay qoldirilgan",
+        visible: true,
+    },
+];
+
+const mask = (text) => "*".repeat(text.length/2);
+
+const TicketTypes = () => {
+    const [data, setData] = useState(initialData);
+    const [form] = Form.useForm();
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [editingTicketTypes, setEditingTicketTypes] = useState(null);
+    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+
+    const toggleVisibility = (key) => {
+        setData((prev) =>
+            prev.map((item) =>
+                item.key === key ? { ...item, visible: !item.visible } : item
+            )
+        );
+    };
+
+    const deleteTicketTypes = (key) => {
+        Modal.confirm({
+            title: "O‘chirishni tasdiqlaysizmi?",
+            onOk: () => {
+                setData((prev) => prev.filter((item) => item.key !== key));
+            },
+        });
+    };
+
+    const editTicketTypes = (record) => {
+        form.setFieldsValue(record);
+        setEditingTicketTypes(record);
+        setIsModalVisible(true);
+    };
+
+    const openAddModal = () => {
+        form.resetFields();
+        setEditingTicketTypes(null);
+        setIsModalVisible(true);
+    };
+
+    const onFinish = (values) => {
+        if (editingTicketTypes) {
+            setData((prev) =>
+                prev.map((item) =>
+                    item.key === editingTicketTypes.key
+                        ? { ...item, ...values }
+                        : item
+                )
+            );
+        } else {
+            const newItem = {
+                key: Date.now().toString(),
+                ...values,
+            };
+            setData((prev) => [newItem, ...prev]);
+        }
+        setIsModalVisible(false);
+        setEditingTicketTypes(null);
+        form.resetFields();
+    };
+
+    const columns = [
+        {
+            title: "Nomi",
+            dataIndex: "name",
+            key: "name",
+            render: (_, record) =>
+                record.visible ? record.name : mask(record.name),
+        },
+        {
+            title: "Holati",
+            key: "condition",
+            render: (_, record) => (
+                <span
+                    style={{
+                        color: record.visible ? "green" : "red",
+                        fontWeight: 500,
+                        fontSize: "18px",
+                    }}
+                >
+                    {record.visible ? <BsCheckLg className="text-[30px]" /> : <GoX className="text-[30px]" />}
+                </span>
+            ),
+        },
+        {
+            title: "Harakat",
+            key: "action",
+            render: (_, record) => (
+                <Space size="middle">
+                    <Button
+                        type="text"
+                        icon={
+                            <ImEye
+                                style={{
+                                    color: record.visible ? "#1890ff" : "gray",
+                                    width: 30,
+                                    height: 30,
+                                }}
+                            />
+                        }
+                        onClick={() => toggleVisibility(record.key)}
+                    />
+                    <Button
+                        type="text"
+                        icon={
+                            <FaEdit
+                                style={{
+                                    color: "#faad14",
+                                    width: 30,
+                                    height: 30,
+                                }}
+                            />
+                        }
+                        onClick={() => editTicketTypes(record)}
+                    />
+                    <Button
+                        type="text"
+                        danger
+                        icon={
+                            <VscTrash
+                                style={{ color: "red", width: 30, height: 30 }}
+                            />
+                        }
+                        onClick={() => deleteTicketTypes(record.key)}
+                    />
+                </Space>
+            ),
+        },
+    ];
+
+    const rowSelection = {
+        selectedRowKeys,
+        onChange: (selectedKeys) => setSelectedRowKeys(selectedKeys),
+    };
+
+    return (
+        <div className="bg-gray-100 min-h-screen">
+            <Breadcrumbs />
+            <div className="p-6">
+                <h1 className="text-3xl text-gray-500">Murojaat turi</h1>
+                <Divider />
+                <div style={{ textAlign: "right", marginBottom: 16 }}>
+                    <Button type="primary" onClick={openAddModal}>
+                        <BiPlusMedical />
+                        Qo‘shish
+                    </Button>
+                </div>
+
+                <Table
+                    columns={columns}
+                    dataSource={data}
+                    rowSelection={rowSelection}
+                    pagination={false}
+                    title={() => <h2 className="text-lg font-semibold text-gray-500">Murojaat turlari jadvali</h2>}
+                />
+
+                <Modal
+                    open={isModalVisible}
+                    title={editingTicketTypes ? "Tahrirlash" : "Yangi murojaat qo‘shish"}
+                    onCancel={() => {
+                        setIsModalVisible(false);
+                        form.resetFields();
+                        setEditingTicketTypes(null);
+                    }}
+                    onOk={() => form.submit()}
+                    okText={editingTicketTypes ? "Saqlash" : "Qo‘shish"}
+                >
+                    <Form form={form} layout="vertical" onFinish={onFinish}>
+                        <Form.Item
+                            name="name"
+                            label="Nomi"
+                            rules={[{ required: true, message: "Murojaat turini kiriting" }]}
+                        >
+                            <Input />
+                        </Form.Item>
+                        <Form.Item
+                            name="visible"
+                            label="Holati"
+                            valuePropName="checked"
+                        >
+                            <Switch checkedChildren="Faol" unCheckedChildren="Nofaol" />
+                        </Form.Item>
+                    </Form>
+                </Modal>
+            </div>
+        </div>
+    );
+};
+
+export default TicketTypes;
